@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>0xclandestine — Ethereum contracts, MLX GPU kernels</title>
+<meta name="description" content="0xclandestine: smart contract engineer (~7 years of Ethereum) working on GPU kernels with Apple MLX.">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#000000">
+<link rel="preload" href="assets/fonts/plex-mono-600.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/plex-sans-var.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23000'/%3E%3Cpath d='M0 4h16M0 8h16M0 12h16M4 0v16M8 0v16M12 0v16' stroke='%23fff' stroke-opacity='.30' stroke-width='.6'/%3E%3Ctext x='8' y='11.5' font-family='monospace' font-size='7' font-weight='700' fill='%23fff' text-anchor='middle'%3E0x%3C/text%3E%3C/svg%3E">
+
+<!-- TODO: real domain -->
+<link rel="canonical" href="https://example.com/">
+
+<meta property="og:type" content="profile">
+<meta property="og:title" content="0xclandestine">
+<meta property="og:description" content="~7 years of Ethereum. ~1.5 years of AI GPU kernels in Apple MLX.">
+<meta property="og:image" content="assets/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="0xclandestine — Ethereum contracts, MLX GPU kernels">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:creator" content="@0xclandestine">
+<meta name="twitter:title" content="0xclandestine">
+<meta name="twitter:description" content="~7 years of Ethereum. ~1.5 years of GPU kernels in Apple MLX.">
+<meta name="twitter:image" content="assets/og.png">
+
+<style>
+@font-face {
+  font-family: "Plex Mono"; font-style: normal; font-weight: 400; font-display: swap;
+  src: url("assets/fonts/plex-mono-400.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Plex Mono"; font-style: normal; font-weight: 500; font-display: swap;
+  src: url("assets/fonts/plex-mono-500.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Plex Mono"; font-style: normal; font-weight: 600; font-display: swap;
+  src: url("assets/fonts/plex-mono-600.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Plex Sans"; font-style: normal; font-weight: 100 700; font-display: swap;
+  src: url("assets/fonts/plex-sans-var.woff2") format("woff2");
+}
+
+:root {
+  color-scheme: dark;
+
+  /* column */
+  --paper:      #000000;
+  --ink:        #e9e9e9;
+  --ink-dim:    #bfbfbf;
+  --ink-faint:  #949494;
+  --line:       rgba(255, 255, 255, .20);
+  --rule:       rgba(255, 255, 255, .16);
+  --accent:         #ff9230;
+  --accent-strong:  #ffb26e;
+  --accent-hover:   #ffb26e;
+  --accent-ink:     #121212;
+  --accent-dim:     rgba(255, 146, 48, .40);
+
+
+
+  --mono: "Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --sans: "Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+
+  --step--1: clamp(.78rem, .76rem + .1vw, .82rem);
+  --step-0:  clamp(.95rem, .92rem + .12vw, 1rem);
+
+  --pad:      clamp(1.4rem, 3.4vw, 4rem);
+  --rail-pad: clamp(1.35rem, 1.9vw, 2.4rem);
+  --gap:      clamp(2.6rem, 1.6rem + 3.6vw, 5rem);
+  --radius:   3px;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; background: var(--paper); }
+.rail, .label, .tag, .tl-when, .tl-role, .term, .colophon, footer,
+h1, .kicker, .avail, .contact { font-feature-settings: "zero" 1, "tnum" 1; }
+body {
+  margin: 0;
+  color: var(--ink);
+  background: var(--paper);
+  font-family: var(--sans);
+  font-size: var(--step-0);
+  line-height: 1.65;
+  font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
+}
+img { max-width: 100%; display: block; }
+a { color: var(--ink); text-decoration-color: var(--ink-faint); text-underline-offset: .18em; }
+a:hover { color: var(--accent-hover); text-decoration-color: var(--accent-hover); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
+::selection { background: var(--accent); color: var(--accent-ink); }
+p { text-wrap: pretty; }
+
+.skip {
+  position: absolute; left: -9999px; top: 0; z-index: 99;
+  background: var(--accent); color: var(--accent-ink); padding: .6rem 1rem;
+  font: 600 var(--step--1)/1 var(--mono);
+}
+.skip:focus { left: 1rem; top: 1rem; }
+.skip:hover { background: var(--accent-hover); }
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
+  overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+}
+
+.shell { display: grid; }
+.col { min-width: 0; padding-inline: var(--pad); }
+.wrap { width: 100%; max-width: 38rem; margin-inline: auto; }
+@media (min-width: 60rem) {
+  .shell { grid-template-columns: clamp(20rem, 26vw, 27rem) minmax(0, 1fr); }
+}
+
+/* Rail: same black as the column, split by a single hairline. The graph paper is
+   parked, not deleted — the tokens and background layers are commented out below. */
+.rail {
+  color: var(--ink);
+  background: var(--paper);
+
+  display: flex; flex-direction: column; justify-content: space-between;
+  gap: 2rem;
+  padding: clamp(1.8rem, 3vw, 2.6rem) var(--rail-pad);
+}
+@media (min-width: 60rem) {
+  .rail {
+    position: sticky; top: 0; align-self: start; height: 100svh; overflow: auto;
+    border-right: 1px solid var(--line);
+  }
+}
+@media (max-width: 59.99rem) {
+  .rail { border-bottom: 1px solid var(--line); }
+}
+/* Paper + graph grid, kept for reference:
+   .rail {
+     --paper: #f3f1ec; --ink: #121212; --ink-dim: #4d4d4d; --ink-faint: #656565;
+     --line: rgba(0,0,0,.18); --rule: rgba(0,0,0,.12);
+     background-image:
+       linear-gradient(to right,  var(--grid-major) 1px, transparent 1px),
+       linear-gradient(to bottom, var(--grid-major) 1px, transparent 1px),
+       linear-gradient(to right,  var(--grid-minor) 1px, transparent 1px),
+       linear-gradient(to bottom, var(--grid-minor) 1px, transparent 1px),
+       var(--grain);
+     background-size: 7.5rem 7.5rem, 7.5rem 7.5rem, 1.5rem 1.5rem, 1.5rem 1.5rem, 160px 160px;
+     background-blend-mode: normal, normal, normal, normal, multiply;
+   }
+*/
+.rail-top { display: grid; }
+.avatar {
+  width: clamp(3.2rem, 6vw, 4.4rem); height: auto; aspect-ratio: 1;
+  border-radius: .5rem; margin: 0 0 1.5rem;
+  outline: 1px solid var(--line); outline-offset: -1px;
+}
+.kicker {
+  font: 500 var(--step--1)/1.4 var(--mono); letter-spacing: .1em;
+  text-transform: uppercase; color: var(--ink-dim); margin: 0 0 .8rem;
+}
+h1 {
+  font: 600 clamp(1.8rem, 2.7vw, 2.6rem)/1 var(--mono);
+  letter-spacing: -.04em; margin: 0 0 1rem; text-wrap: balance;
+}
+h1 .z { color: var(--accent); }
+/* the status sits beside the action, at colophon size */
+.rail-act { display: flex; align-items: center; gap: .85rem; flex-wrap: wrap; margin: 1.5rem 0 0; }
+.avail {
+  display: inline-flex; align-items: center; gap: .45rem; margin: 0;
+  font: 500 clamp(.68rem, .65rem + .12vw, .76rem)/1.2 var(--mono);
+  letter-spacing: .02em; color: var(--ink-faint);
+}
+.dot {
+  width: .5rem; height: .5rem; border-radius: 50%;
+  background: var(--accent);
+  animation: live 3.2s ease-in-out infinite;
+}
+@keyframes live { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .5; transform: scale(.82); } }
+
+/* the record sits at the foot of the rail */
+.rail-record { display: grid; gap: 1rem; }
+.contact { display: grid; gap: .95rem; margin: 0; }
+.contact dt {
+  font: var(--step--1)/1 var(--mono); color: var(--ink-faint);
+  text-transform: uppercase; letter-spacing: .1em;
+}
+.contact dd { margin: .28rem 0 0; font: 600 var(--step--1)/1.45 var(--mono); overflow-wrap: anywhere; }
+.contact a { color: var(--ink); text-decoration: none; }
+.contact a:hover { color: var(--accent-hover); text-decoration: underline; text-decoration-color: var(--accent-hover); }
+.mail { display: inline-flex; align-items: baseline; gap: .55rem; flex-wrap: wrap; }
+.copy {
+  font: 500 var(--step--1)/1 var(--mono); color: var(--ink-faint); background: none;
+  border: 1px solid var(--line); border-radius: 2px; padding: .2rem .35rem;
+  cursor: pointer; letter-spacing: .04em;
+}
+.copy:hover, .copy[data-done] { color: var(--accent-hover); border-color: var(--accent-hover); }
+
+.primary {
+  display: inline-block; background: var(--ink); color: var(--paper);
+  text-decoration: none; padding: .62rem .95rem; border-radius: var(--radius);
+  font: 600 var(--step--1)/1 var(--mono);
+}
+.primary:hover { background: var(--accent); color: var(--accent-ink); }
+
+/* Short laptops: keep the rail inside one screen without an inner scrollbar. */
+@media (min-width: 60rem) and (max-height: 820px) {
+  .rail { gap: 1.1rem; padding-block: 1.5rem; }
+  .avatar { width: 3rem; margin-bottom: .9rem; }
+  .rail-act { margin-top: .9rem; }
+}
+/* Phones: the rail becomes a masthead with the mark beside the name. */
+@media (max-width: 59.99rem) {
+  .rail { gap: 1.6rem; padding-block: 1.9rem 2.2rem; }
+  .rail-top { grid-template-columns: auto minmax(0, 1fr); align-items: center; column-gap: 1rem; }
+  .avatar { margin: 0; grid-row: 1 / span 3; width: 3.4rem; }
+  .kicker { grid-column: 2; margin-bottom: .35rem; }
+  h1 { grid-column: 2; margin-bottom: .4rem; }
+  .rail-act { grid-column: 1 / -1; margin-top: 1.1rem; }
+  .contact { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.1rem 1rem; }
+  .contact > div:first-child { grid-column: 1 / -1; }
+}
+
+section { padding-block: var(--gap); }
+#open-source, #work-history {
+  background-image: linear-gradient(var(--rule), var(--rule));
+  background-repeat: no-repeat; background-position: left top; background-size: 100% 1px;
+}
+footer {
+  padding-block: 1.6rem 2.6rem;
+  background-image: linear-gradient(var(--rule), var(--rule));
+  background-repeat: no-repeat; background-position: left top; background-size: 100% 1px;
+}
+.colophon {
+  max-width: 27rem; margin: 0 auto; text-align: center;
+  font: clamp(.68rem, .65rem + .12vw, .74rem)/1.75 var(--mono);
+  color: var(--ink-faint);
+}
+.colophon strong { color: var(--ink-dim); font-weight: 500; }
+.heart { color: var(--accent); }
+.label {
+  margin: 0 0 1.7rem; font: 500 var(--step--1)/1 var(--mono);
+  letter-spacing: .14em; text-transform: uppercase; color: var(--ink-dim);
+}
+/* the opening claim, one size up from the paragraph it introduces */
+.prose .lead {
+  font: 600 clamp(1.06rem, 1.02rem + .2vw, 1.18rem)/1.45 var(--sans);
+  letter-spacing: -.012em; color: var(--ink);
+  margin: 0 0 .75rem;
+}
+/* a coined term drops into the mono voice mid-sentence */
+.term { font-family: var(--mono); font-size: .93em; letter-spacing: -.01em; color: var(--ink); overflow-wrap: break-word; }
+
+/* emphasis inside the prose, used sparingly: weight, slant, and the one number */
+.prose strong { color: var(--ink); font-weight: 600; }
+.prose em { color: var(--ink); font-style: italic; }
+.prose em, .prose strong { -webkit-box-decoration-break: clone; }
+.prose strong.big { color: var(--accent); font-weight: 600; }
+
+.prose p { max-width: none; color: var(--ink-dim); margin: 0 0 1.05rem; }
+.prose p:last-child { margin-bottom: 0; }
+
+/* the totals strip: the only place numbers appear without a repo name */
+.stats {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.4rem 1.2rem; margin: 0 0 2.2rem;
+}
+.stat b {
+  display: block; font: 600 clamp(1.1rem, 1rem + .35vw, 1.35rem)/1 var(--mono);
+  letter-spacing: -.02em; color: var(--ink); font-variant-numeric: tabular-nums;
+}
+.stat span {
+  display: block; margin-top: .4rem;
+  font: 500 var(--step--1)/1.3 var(--mono); letter-spacing: .1em;
+  text-transform: uppercase; color: var(--ink-faint);
+}
+
+/* the contribution record: totals only, for now */
+.prs-note { margin: 0; font-size: var(--step--1); line-height: 1.6; color: var(--ink-faint); }
+
+
+.stack { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .8rem; }
+.tag {
+  font: var(--step--1)/1 var(--mono); color: var(--ink-dim);
+  border: 1px solid var(--line); border-radius: 2px; padding: .2rem .4rem;
+}
+
+.tl { list-style: none; margin: 0; padding: 0; display: grid; gap: 1.7rem; }
+.tl-item { display: grid; gap: .15rem 1.6rem; }
+@media (min-width: 46rem) { .tl-item { grid-template-columns: 5.5rem 1fr; } }
+.tl-when {
+  margin: 0; font: 500 clamp(.95rem, .9rem + .22vw, 1.06rem)/1.45 var(--mono);
+  letter-spacing: -.01em; color: var(--ink-dim);
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.tl-when .to { color: var(--line); margin-inline: .12em; }
+.tl-what h3 {
+  margin: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: .1rem .8rem;
+  font: 600 var(--step-0)/1.3 var(--sans); letter-spacing: -.01em;
+}
+.tl-role { font: 400 var(--step--1)/1.4 var(--mono); color: var(--ink-faint); letter-spacing: .02em; }
+.tl-what > p { margin: .35rem 0 0; color: var(--ink-dim); }
+.tl-what strong { color: var(--accent); font-weight: 600; }
+a.quiet { color: inherit; text-decoration: none; }
+a.quiet:hover { color: var(--accent-hover); }
+/* the two project names already sit in the accent, so they hover the other way */
+a.quiet:hover strong { color: var(--ink); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#about">Skip to content</a>
+
+<div class="shell">
+
+  <aside class="rail" aria-labelledby="name">
+    <div class="rail-top">
+      <img class="avatar" src="assets/avatar.jpg" alt="" width="96" height="96" decoding="async">
+      <p class="kicker">Ethereum X Local&nbsp;AI</p>
+      <h1 id="name"><span class="z">0x</span>clandestine</h1>
+      <div class="rail-act">
+        <a class="primary" href="mailto:optimizestuff@proton.me">Email me</a>
+        <p class="avail"><span class="dot" aria-hidden="true"></span>Available for work</p>
+      </div>
+    </div>
+
+    <div class="rail-record">
+        <span class="visually-hidden" role="status" aria-live="polite" id="copy-status"></span>
+        <dl class="contact">
+          <div><dt>Email</dt><dd><span class="mail"><a href="mailto:optimizestuff@proton.me">optimizestuff@proton.me</a><button class="copy" id="copy" type="button" data-copy="optimizestuff@proton.me" hidden>copy</button></span></dd></div>
+          <div><dt>GitHub</dt><dd><a href="https://github.com/0xclandestine">0xclandestine</a></dd></div>
+          <div><dt>X</dt><dd><a href="https://x.com/0xclandestine">@0xclandestine</a></dd></div>
+          <div><dt>Location</dt><dd>Austin, TX</dd></div>
+        </dl>
+    </div>
+  </aside>
+
+  <div class="col">
+   <div class="wrap">
+    <main id="main">
+
+      <section id="about" aria-labelledby="about-h">
+        <h2 class="label" id="about-h">About</h2>
+        <div class="prose">
+          <p class="lead">I enjoy making computers do less work.</p>
+          <p>
+            I'm <strong>self-taught</strong>: business degree, no CS background. I learned to
+            program between lectures from Stack Overflow and docs — in the
+            <span class="term">pre-AI</span> era, so you had to actually
+            <em>figure things out</em>. The entry point was a personal project, automating my
+            trading portfolio to cut risk.
+          </p>
+          <p>
+            <span class="term">Solidity</span> clicked when I wanted the same on-chain, with
+            Uniswap, Sushi and the early dapps. That's the real appeal of Ethereum: anyone can
+            build a censorship-resistant app that, done properly, lasts.
+          </p>
+          <p>
+            When <span class="term">gas</span> got expensive, bad design meant an unusable app,
+            so I went deep on optimization — which pulled me into the fundamentals of computer
+            science. <strong>You can't optimize primitives you don't understand.</strong>
+          </p>
+          <p>
+            Some contracts I've written have held <strong class="big">billions</strong> in
+            deposits at their peak, without loss of funds. The work hasn't changed: design the
+            protocol, then write code that stays correct while real money moves through it.
+          </p>
+        </div>
+      </section>
+
+      <section id="work-history" aria-labelledby="work-history-h">
+        <h2 class="label" id="work-history-h">Experience</h2>
+        <ol class="tl">
+          <li class="tl-item">
+            <p class="tl-when"><time datetime="2024">2024</time><span class="to">–</span><time datetime="2026">2026</time></p>
+            <div class="tl-what">
+              <h3><a class="quiet" href="https://eigenlabs.org/">EigenLayer</a><span class="tl-role">Senior smart contract engineer · protocol team</span></h3>
+              <p>Core contract team across many major protocol releases. When the term <span class="term">&ldquo;autoresearch&rdquo;</span> was coined I shifted my focus into agentic research and optimization, ultimately helping to create <a class="quiet" href="https://darkbloom.ai/"><strong>Darkbloom</strong></a> and <a class="quiet" href="https://yukon.org/"><strong>Yukon</strong></a>.</p>
+              <div class="stack"><span class="tag">Solidity</span><span class="tag">EVM</span><span class="tag">Ethereum</span><span class="tag">Metal</span><span class="tag">Rust</span></div>
+            </div>
+          </li>
+          <li class="tl-item">
+            <p class="tl-when"><time datetime="2022">2022</time><span class="to">–</span><time datetime="2024">2024</time></p>
+            <div class="tl-what">
+              <h3>Contracting business<span class="tl-role">Smart contract consulting &amp; development · owner</span></h3>
+              <p>Ran a contracting business offering smart contract consulting and hands-on development, on engagements from a few weeks to over a year. Clients included <a class="quiet" href="https://fjordfoundry.com/"><strong>Fjord&nbsp;Foundry</strong></a>, where I drafted the core contracts for a liquidity bootstrapping protocol.</p>
+              <div class="stack"><span class="tag">Solidity</span><span class="tag">TypeScript</span><span class="tag">Ethereum</span></div>
+            </div>
+          </li>
+          <li class="tl-item">
+            <p class="tl-when"><time datetime="2021">2021</time><span class="to">–</span><time datetime="2022">2022</time></p>
+            <div class="tl-what">
+              <h3>Olympus DAO<span class="tl-role">Senior smart contract engineer · protocol team</span></h3>
+              <p>Core contract team for the second major release.</p>
+              <div class="stack"><span class="tag">Solidity</span><span class="tag">Ethereum</span></div>
+            </div>
+          </li>
+        </ol>
+      </section>
+
+      <section id="open-source" aria-labelledby="open-source-h">
+        <h2 class="label" id="open-source-h">Open source work</h2>
+
+        <p class="prs-lead">
+          Everything since 2020, in <strong>126 repositories</strong> — <strong>198</strong> pull
+          requests merged into 71 I don't own.
+        </p>
+
+        <div class="stats">
+          <div class="stat"><b>293</b><span>merged PRs</span></div>
+          <div class="stat"><b>448</b><span>PRs opened</span></div>
+          <div class="stat"><b>287</b><span>reviews</span></div>
+          <div class="stat"><b>84</b><span>issues</span></div>
+          <div class="stat"><b>2,315</b><span>commits</span></div>
+          <div class="stat"><b>1,062</b><span>private work</span></div>
+        </div>
+
+        <p class="prs-note">
+          Olympus DAO predates this account. Private work is never broken down.
+        </p>
+      </section>
+
+    </main>
+
+    <footer>
+      <p class="colophon">This site was built without a datacenter using an <strong>M4&nbsp;Max</strong> running <strong>Inkling&nbsp;2&nbsp;Mini</strong> <span class="heart" aria-hidden="true">❤️</span></p>
+    </footer>
+   </div>
+  </div>
+
+</div>
+
+<script>
+(function () {
+  var copy = document.getElementById('copy');
+  var say  = document.getElementById('copy-status');
+  if (!copy || !navigator.clipboard) return;
+  copy.hidden = false;
+  copy.addEventListener('click', function () {
+    navigator.clipboard.writeText(copy.dataset.copy).then(function () {
+      copy.textContent = 'copied';
+      copy.setAttribute('data-done', '');
+      say.textContent = 'Address copied to clipboard';
+      setTimeout(function () {
+        copy.textContent = 'copy';
+        copy.removeAttribute('data-done');
+        say.textContent = '';
+      }, 1600);
+    })['catch'](function () {});
+  });
+})();
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Person",
+  "name": "0xclandestine",
+  "url": "https://example.com/",
+  "image": "https://example.com/assets/avatar.jpg",
+  "sameAs": ["https://github.com/0xclandestine", "https://x.com/0xclandestine"],
+  "knowsAbout": ["Ethereum", "Solidity", "EVM", "GPU kernels", "Apple MLX", "Metal"],
+  "address": { "@type": "PostalAddress", "addressLocality": "Austin", "addressRegion": "TX", "addressCountry": "US" }
+}
+</script>
+</body>
+</html>
